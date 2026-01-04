@@ -288,24 +288,22 @@ bool Application::init_base(int argc, const char* argv[])
 
     ImGui_ImplVulkan_InitInfo init_info = {};
 
-    init_info.Instance                    = m_vk_backend->instance();
-    init_info.PhysicalDevice              = m_vk_backend->physical_device();
-    init_info.Device                      = m_vk_backend->device();
-    init_info.QueueFamily                 = m_vk_backend->queue_infos().graphics_queue_index;
-    init_info.Queue                       = m_vk_backend->graphics_queue();
-    init_info.PipelineCache               = nullptr;
-    init_info.DescriptorPoolSize          = 32;
-    init_info.RenderPass                  = nullptr;
-    init_info.Allocator                   = nullptr;
-    init_info.MinImageCount               = 2;
-    init_info.ImageCount                  = m_vk_backend->swap_image_count();
-    init_info.CheckVkResultFn             = nullptr;
-    init_info.UseDynamicRendering         = true;
-    init_info.PipelineRenderingCreateInfo = pipeline_rendering_info;
+    init_info.Instance                                        = m_vk_backend->instance();
+    init_info.PhysicalDevice                                  = m_vk_backend->physical_device();
+    init_info.Device                                          = m_vk_backend->device();
+    init_info.QueueFamily                                     = m_vk_backend->queue_infos().graphics_queue_index;
+    init_info.Queue                                           = m_vk_backend->graphics_queue();
+    init_info.PipelineCache                                   = nullptr;
+    init_info.DescriptorPoolSize                              = 32;
+    init_info.PipelineInfoMain.RenderPass                     = nullptr;
+    init_info.Allocator                                       = nullptr;
+    init_info.MinImageCount                                   = 2;
+    init_info.ImageCount                                      = m_vk_backend->swap_image_count();
+    init_info.CheckVkResultFn                                 = nullptr;
+    init_info.UseDynamicRendering                             = true;
+    init_info.PipelineInfoMain.PipelineRenderingCreateInfo    = pipeline_rendering_info;
 
     ImGui_ImplVulkan_Init(&init_info);
-
-    ImGui_ImplVulkan_CreateFontsTexture();
 #    else
     ImGui_ImplGlfw_InitForOpenGL(m_window, false);
     ImGui_ImplOpenGL3_Init(imgui_glsl_version);

@@ -88,7 +88,7 @@ endif()
 
 set(NSIGHT_AFTERMATH_DLL ${PROJECT_SOURCE_DIR}/external/nsight-aftermath-sdk/bin/GFSDK_Aftermath_Lib.x64.dll)
 
-set(DLL_COPY_DIR ${CMAKE_SOURCE_DIR}/bin/$(Configuration))
+set(DLL_COPY_DIR ${CMAKE_BINARY_DIR}/bin)
 
 add_custom_command(
 	TARGET dwSampleFramework POST_BUILD

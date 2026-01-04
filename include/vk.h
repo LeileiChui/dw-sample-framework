@@ -3,6 +3,7 @@
 #if defined(DWSF_VULKAN)
 
 #    include <volk.h>
+#    include <vk_mem_alloc.h>
 #    include <vector>
 #    include <string>
 #    include <memory>
@@ -11,9 +12,6 @@
 #    include <unordered_map>
 
 struct GLFWwindow;
-struct VmaAllocator_T;
-struct VmaAllocation_T;
-enum VmaMemoryUsage;
 
 namespace dw
 {
@@ -142,9 +140,9 @@ public:
     size_t           aligned_dynamic_ubo_size(size_t size);
     VkFormat         find_supported_format(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
-    inline VkPhysicalDeviceProperties                         physical_device_properties() { return m_device_properties; }
-    inline VkPhysicalDeviceRayTracingPipelinePropertiesKHR    ray_tracing_pipeline_properties() { return m_ray_tracing_pipeline_properties; }
-    inline VkPhysicalDeviceAccelerationStructurePropertiesKHR acceleration_structure_properties() { return m_acceleration_structure_properties; }
+    inline const VkPhysicalDeviceProperties&                         physical_device_properties() { return m_device_properties; }
+    inline const VkPhysicalDeviceRayTracingPipelinePropertiesKHR&    ray_tracing_pipeline_properties() { return m_ray_tracing_pipeline_properties; }
+    inline const VkPhysicalDeviceAccelerationStructurePropertiesKHR& acceleration_structure_properties() { return m_acceleration_structure_properties; }
     inline VkFormat                                           swap_chain_image_format() { return m_swap_chain_image_format; }
     inline VkFormat                                           swap_chain_depth_format() { return m_swap_chain_depth_format; }
     inline VkExtent2D                                         swap_chain_extents() { return m_swap_chain_extent; }
