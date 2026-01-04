@@ -129,7 +129,8 @@ bool QueueInfos::transfer()
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 Object::Object(Backend::Ptr backend) :
-    m_vk_backend(backend)
+    m_vk_backend(backend),
+    m_vk_device(backend->device())
 {
 }
 
@@ -265,12 +266,6 @@ Image::Image(Backend::Ptr backend, VkImage image, VkImageType type, uint32_t wid
 
 Image::~Image()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
     if (m_vma_allocator && m_vma_allocation)
         vmaDestroyImage(m_vma_allocator, m_vk_image, m_vma_allocation);
 }
@@ -465,15 +460,7 @@ ImageView::ImageView(Backend::Ptr backend, Image::Ptr image, VkImageViewType vie
 
 ImageView::~ImageView()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
-    vkDestroyImageView(backend->device(), m_vk_image_view, nullptr);
+    vkDestroyImageView(m_vk_device, m_vk_image_view, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -691,15 +678,7 @@ CommandPool::CommandPool(Backend::Ptr backend, uint32_t queue_family_index) :
 
 CommandPool::~CommandPool()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
-    vkDestroyCommandPool(backend->device(), m_vk_pool, nullptr);
+    vkDestroyCommandPool(m_vk_device, m_vk_pool, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -729,6 +708,7 @@ CommandBuffer::CommandBuffer(Backend::Ptr backend, CommandPool::Ptr pool) :
     Object(backend)
 {
     m_vk_pool = pool;
+    m_vk_pool_handle = pool->handle();
 
     VkCommandBufferAllocateInfo alloc_info;
     DW_ZERO_MEMORY(alloc_info);
@@ -756,16 +736,7 @@ CommandBuffer::Ptr CommandBuffer::create(Backend::Ptr backend, CommandPool::Ptr 
 
 CommandBuffer::~CommandBuffer()
 {
-    if (m_vk_backend.expired() || m_vk_pool.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-    auto pool    = m_vk_pool.lock();
-
-    vkFreeCommandBuffers(backend->device(), pool->handle(), 1, &m_vk_command_buffer);
+    vkFreeCommandBuffers(m_vk_device, m_vk_pool_handle, 1, &m_vk_command_buffer);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -826,15 +797,7 @@ ShaderModule::ShaderModule(Backend::Ptr backend, std::vector<char> spirv) :
 
 ShaderModule::~ShaderModule()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
-    vkDestroyShaderModule(backend->device(), m_vk_module, nullptr);
+    vkDestroyShaderModule(m_vk_device, m_vk_module, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -1778,15 +1741,7 @@ GraphicsPipeline::GraphicsPipeline(Backend::Ptr backend, Desc desc) :
 
 GraphicsPipeline::~GraphicsPipeline()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
-    vkDestroyPipeline(backend->device(), m_vk_pipeline, nullptr);
+    vkDestroyPipeline(m_vk_device, m_vk_pipeline, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -1866,15 +1821,7 @@ ComputePipeline::ComputePipeline(Backend::Ptr backend, Desc desc) :
 
 ComputePipeline::~ComputePipeline()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
-    vkDestroyPipeline(backend->device(), m_vk_pipeline, nullptr);
+    vkDestroyPipeline(m_vk_device, m_vk_pipeline, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -2171,17 +2118,9 @@ RayTracingPipeline::Ptr RayTracingPipeline::create(Backend::Ptr backend, Desc de
 
 RayTracingPipeline::~RayTracingPipeline()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
     m_vk_buffer.reset();
     m_sbt.reset();
-    vkDestroyPipeline(backend->device(), m_vk_pipeline, nullptr);
+    vkDestroyPipeline(m_vk_device, m_vk_pipeline, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -2359,15 +2298,7 @@ AccelerationStructure::Ptr AccelerationStructure::create(Backend::Ptr backend, D
 
 AccelerationStructure::~AccelerationStructure()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
-    vkDestroyAccelerationStructureKHR(backend->device(), m_vk_acceleration_structure, nullptr);
+    vkDestroyAccelerationStructureKHR(m_vk_device, m_vk_acceleration_structure, nullptr);
     m_buffer.reset();
 }
 
@@ -2469,15 +2400,7 @@ Sampler::Sampler(Backend::Ptr backend, Desc desc) :
 
 Sampler::~Sampler()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
-    vkDestroySampler(backend->device(), m_vk_sampler, nullptr);
+    vkDestroySampler(m_vk_device, m_vk_sampler, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -2544,15 +2467,7 @@ DescriptorSetLayout::DescriptorSetLayout(Backend::Ptr backend, Desc desc) :
 
 DescriptorSetLayout::~DescriptorSetLayout()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
-    vkDestroyDescriptorSetLayout(backend->device(), m_vk_ds_layout, nullptr);
+    vkDestroyDescriptorSetLayout(m_vk_device, m_vk_ds_layout, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -2616,15 +2531,7 @@ PipelineLayout::PipelineLayout(Backend::Ptr backend, Desc desc) :
 
 PipelineLayout::~PipelineLayout()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
-    vkDestroyPipelineLayout(backend->device(), m_vk_pipeline_layout, nullptr);
+    vkDestroyPipelineLayout(m_vk_device, m_vk_pipeline_layout, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -2693,15 +2600,7 @@ DescriptorPool::DescriptorPool(Backend::Ptr backend, Desc desc) :
 
 DescriptorPool::~DescriptorPool()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
-    vkDestroyDescriptorPool(backend->device(), m_vk_ds_pool, nullptr);
+    vkDestroyDescriptorPool(m_vk_device, m_vk_ds_pool, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -2725,6 +2624,7 @@ DescriptorSet::DescriptorSet(Backend::Ptr backend, DescriptorSetLayout::Ptr layo
     Object(backend)
 {
     m_vk_pool = pool;
+    m_vk_pool_handle = pool->handle();
 
     VkDescriptorSetAllocateInfo info;
     DW_ZERO_MEMORY(info);
@@ -2751,17 +2651,8 @@ DescriptorSet::DescriptorSet(Backend::Ptr backend, DescriptorSetLayout::Ptr layo
 
 DescriptorSet::~DescriptorSet()
 {
-    if (m_vk_backend.expired() || m_vk_pool.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-    auto pool    = m_vk_pool.lock();
-
     if (m_should_destroy)
-        vkFreeDescriptorSets(backend->device(), pool->handle(), 1, &m_vk_ds);
+        vkFreeDescriptorSets(m_vk_device, m_vk_pool_handle, 1, &m_vk_ds);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -2783,15 +2674,7 @@ Fence::Ptr Fence::create(Backend::Ptr backend)
 
 Fence::~Fence()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
-    vkDestroyFence(backend->device(), m_vk_fence, nullptr);
+    vkDestroyFence(m_vk_device, m_vk_fence, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -2841,15 +2724,7 @@ Semaphore::Ptr Semaphore::create(Backend::Ptr backend)
 
 Semaphore::~Semaphore()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
-    vkDestroySemaphore(backend->device(), m_vk_semaphore, nullptr);
+    vkDestroySemaphore(m_vk_device, m_vk_semaphore, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
@@ -2902,15 +2777,7 @@ bool QueryPool::results(uint32_t           first_query,
 
 QueryPool::~QueryPool()
 {
-    if (m_vk_backend.expired())
-    {
-        DW_LOG_FATAL("(Vulkan) Destructing after Device.");
-        throw std::runtime_error("(Vulkan) Destructing after Device.");
-    }
-
-    auto backend = m_vk_backend.lock();
-
-    vkDestroyQueryPool(backend->device(), m_vk_query_pool, nullptr);
+    vkDestroyQueryPool(m_vk_device, m_vk_query_pool, nullptr);
 }
 
 // -----------------------------------------------------------------------------------------------------------------------------------
