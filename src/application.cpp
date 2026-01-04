@@ -384,7 +384,7 @@ void Application::shutdown_base()
     m_render_complete_semaphores.clear();
     m_present_complete_semaphores.clear();
 
-    m_vk_backend->~Backend();
+    m_vk_backend.reset();
 #else
     // Shutdown debug draw.
     m_debug_draw.shutdown();

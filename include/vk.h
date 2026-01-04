@@ -253,6 +253,7 @@ public:
 
 protected:
     std::weak_ptr<Backend> m_vk_backend;
+    VkDevice               m_vk_device;
 };
 
 class Image : public Object
@@ -404,6 +405,7 @@ private:
 
 private:
     VkCommandBuffer            m_vk_command_buffer;
+    VkCommandPool              m_vk_pool_handle;
     std::weak_ptr<CommandPool> m_vk_pool;
 };
 
@@ -951,6 +953,7 @@ private:
 private:
     bool                          m_should_destroy = false;
     VkDescriptorSet               m_vk_ds;
+    VkDescriptorPool              m_vk_pool_handle;
     std::weak_ptr<DescriptorPool> m_vk_pool;
 };
 
