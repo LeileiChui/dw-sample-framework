@@ -425,13 +425,14 @@ void Application::submit_and_present(const std::vector<vk::CommandBuffer::Ptr>& 
 {
     const uint32_t semaphore_idx = m_frame_index % static_cast<uint32_t>(m_present_complete_semaphores.size());
     const uint32_t fence_idx     = m_frame_index % static_cast<uint32_t>(m_render_complete_fences.size());
+    const uint32_t image_idx     = m_vk_backend->current_image_index();
 
     m_vk_backend->submit_graphics(cmd_bufs,
                                   { m_present_complete_semaphores[semaphore_idx] },
-                                  { m_render_complete_semaphores[semaphore_idx] },
+                                  { m_render_complete_semaphores[image_idx] },
                                   m_render_complete_fences[fence_idx]);
 
-    m_vk_backend->present({ m_render_complete_semaphores[semaphore_idx] });
+    m_vk_backend->present({ m_render_complete_semaphores[image_idx] });
 }
 
 #endif

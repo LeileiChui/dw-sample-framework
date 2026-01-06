@@ -58,7 +58,7 @@ public:
 #endif
 
     Application();
-    ~Application();
+    virtual ~Application();
 
     // Run method. Command line arguments passed in.
     int run(int argc, const char* argv[]);

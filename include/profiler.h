@@ -8,10 +8,13 @@
 #    include "vk.h"
 #endif
 
+#define DW_CONCAT_IMPL(a, b) a##b
+#define DW_CONCAT(a, b) DW_CONCAT_IMPL(a, b)
+
 #if defined(DWSF_VULKAN)
-#    define DW_SCOPED_SAMPLE(name, cmd_buf) dw::profiler::ScopedProfile __FILE__##__LINE__(name, cmd_buf)
+#    define DW_SCOPED_SAMPLE(name, cmd_buf) dw::profiler::ScopedProfile DW_CONCAT(_scoped_profile_, __LINE__)(name, cmd_buf)
 #else
-#    define DW_SCOPED_SAMPLE(name) dw::profiler::ScopedProfile __FILE__##__LINE__(name)
+#    define DW_SCOPED_SAMPLE(name) dw::profiler::ScopedProfile DW_CONCAT(_scoped_profile_, __LINE__)(name)
 #endif
 
 namespace dw

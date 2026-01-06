@@ -9,7 +9,7 @@
 #endif
 
 #define BUFFER_COUNT 3
-#define MAX_SAMPLES 256
+#define MAX_SAMPLES 1024
 
 namespace dw
 {
@@ -98,6 +98,10 @@ struct Profiler
 
         int32_t idx = m_sample_buffers[m_write_buffer_idx].index++;
 
+        // Boundary check to prevent samples array overflow
+        if (idx >= MAX_SAMPLES)
+            return;
+
         if (!m_sample_buffers[m_write_buffer_idx].samples[idx])
             m_sample_buffers[m_write_buffer_idx].samples[idx] = std::make_unique<Sample>();
 
@@ -106,7 +110,12 @@ struct Profiler
         sample->name = name;
 #if defined(DWSF_VULKAN)
         sample->query_index = m_sample_buffers[m_write_buffer_idx].query_index++;
-        vkCmdWriteTimestamp(cmd_buf->handle(), VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_sample_buffers[m_write_buffer_idx].query_pool->handle(), sample->query_index);
+        
+        // Boundary check to prevent query index overflow
+        if (sample->query_index < MAX_SAMPLES)
+        {
+            vkCmdWriteTimestamp(cmd_buf->handle(), VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_sample_buffers[m_write_buffer_idx].query_pool->handle(), sample->query_index);
+        }
 
         VkDebugUtilsLabelEXT debug_label;
 
@@ -149,6 +158,10 @@ struct Profiler
     {
         int32_t idx = m_sample_buffers[m_write_buffer_idx].index++;
 
+        // Boundary check to prevent samples array overflow
+        if (idx >= MAX_SAMPLES)
+            return;
+
         if (!m_sample_buffers[m_write_buffer_idx].samples[idx])
             m_sample_buffers[m_write_buffer_idx].samples[idx] = std::make_unique<Sample>();
 
@@ -158,7 +171,12 @@ struct Profiler
         sample->start = false;
 #if defined(DWSF_VULKAN)
         sample->query_index = m_sample_buffers[m_write_buffer_idx].query_index++;
-        vkCmdWriteTimestamp(cmd_buf->handle(), VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_sample_buffers[m_write_buffer_idx].query_pool->handle(), sample->query_index);
+        
+        // Boundary check to prevent query index overflow
+        if (sample->query_index < MAX_SAMPLES)
+        {
+            vkCmdWriteTimestamp(cmd_buf->handle(), VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_sample_buffers[m_write_buffer_idx].query_pool->handle(), sample->query_index);
+        }
 
         vkCmdEndDebugUtilsLabelEXT(cmd_buf->handle());
 #else
@@ -248,10 +266,22 @@ struct Profiler
                     float gpu_time = float(gpu_time_diff / 1000000.0);
                     float cpu_time = (sample->end_sample->cpu_time - sample->cpu_time) * 0.001f;
 
-                    if (ImGui::TreeNode(id.c_str(), "%s | %f ms (CPU) | %f ms (GPU)", sample->name.c_str(), cpu_time, gpu_time))
-                        m_should_pop_stack.push(true);
-                    else
+                    // 检查是否为叶子节点：下一个sample是否就是当前节点的end_sample
+                    bool is_leaf = (i + 1 < m_sample_buffers[m_read_buffer_idx].index) &&
+                                   (m_sample_buffers[m_read_buffer_idx].samples[i + 1].get() == sample->end_sample);
+
+                    if (is_leaf)
+                    {
+                        ImGui::Text("%s | %f ms (CPU) | %f ms (GPU)", sample->name.c_str(), cpu_time, gpu_time);
                         m_should_pop_stack.push(false);
+                    }
+                    else
+                    {
+                        if (ImGui::TreeNode(id.c_str(), "%s | %f ms (CPU) | %f ms (GPU)", sample->name.c_str(), cpu_time, gpu_time))
+                            m_should_pop_stack.push(true);
+                        else
+                            m_should_pop_stack.push(false);
+                    }
                 }
                 else
                 {
