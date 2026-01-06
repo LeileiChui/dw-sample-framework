@@ -147,6 +147,7 @@ public:
     inline VkFormat                                           swap_chain_depth_format() { return m_swap_chain_depth_format; }
     inline VkExtent2D                                         swap_chain_extents() { return m_swap_chain_extent; }
     inline uint32_t                                           current_frame_idx() { return m_current_frame; }
+    inline uint32_t                                           current_image_index() { return m_image_index; }
     inline uint32_t                                           swapchain_size() { return m_swap_chain_images.size(); }
     inline const QueueInfos&                                  queue_infos() { return m_selected_queues; }
     inline std::shared_ptr<Sampler>                           bilinear_sampler() { return m_bilinear_sampler; }

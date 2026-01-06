@@ -3566,7 +3566,7 @@ void Backend::use_resource(VkPipelineStageFlags2   _stage,
             }
         }
 
-        VkImageLayout first_old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+        VkImageLayout first_old_layout = VK_IMAGE_LAYOUT_MAX_ENUM; // Use MAX_ENUM as "unset" marker
 
         for (uint32_t layer_idx = 0; layer_idx < _range.layerCount; layer_idx++)
         {
@@ -3588,16 +3588,23 @@ void Backend::use_resource(VkPipelineStageFlags2   _stage,
                 else
                 {
                     // Make sure the other layers and levels have the same old layout.
-                    // If not, we've done something wrong.
-                    if (first_old_layout == VK_IMAGE_LAYOUT_UNDEFINED)
-                        first_old_layout = old_usage.layout;
-                    else if (first_old_layout != old_usage.layout)
-                        throw std::runtime_error("(Vulkan) Attempting an Image Layout Transition across multiple subresources that have different old layouts! Transition them to a common layout before attempting this!");
+                    // UNDEFINED layouts are compatible with any layout (content is discarded)
+                    if (old_usage.layout != VK_IMAGE_LAYOUT_UNDEFINED)
+                    {
+                        if (first_old_layout == VK_IMAGE_LAYOUT_MAX_ENUM)
+                            first_old_layout = old_usage.layout;
+                        else if (first_old_layout != old_usage.layout)
+                            throw std::runtime_error("(Vulkan) Attempting an Image Layout Transition across multiple subresources that have different old layouts! Transition them to a common layout before attempting this!");
+                    }
                 }
                 
                 old_usage = new_usage;
             }
         }
+        
+        // If all subresources were UNDEFINED, set barrier's old layout to UNDEFINED
+        if (first_old_layout == VK_IMAGE_LAYOUT_MAX_ENUM)
+            barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     }
     else
     {
