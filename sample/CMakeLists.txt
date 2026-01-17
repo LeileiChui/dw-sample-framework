@@ -31,10 +31,10 @@ if (USE_VULKAN)
 
     foreach(GLSL ${VULKAN_ALL_SHADERS})
         get_filename_component(FILE_NAME ${GLSL} NAME)
-        set(SPIRV "${CMAKE_SOURCE_DIR}/bin/$(Configuration)/shaders/${FILE_NAME}.spv")
+        set(SPIRV "${CMAKE_BINARY_DIR}/bin/shaders/${FILE_NAME}.spv")
         add_custom_command(
             OUTPUT ${SPIRV}
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/bin/$(Configuration)/shaders"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/bin/shaders"
             COMMAND ${GLSL_VALIDATOR} --target-env vulkan1.2 -V ${GLSL} -o ${SPIRV}
             DEPENDS ${GLSL})
         list(APPEND SPIRV_BINARY_FILES ${SPIRV})
@@ -59,8 +59,8 @@ if (USE_VULKAN)
         add_dependencies(sample_vk sample_vk_shaders)
         add_dependencies(sample_vk_ray_tracing sample_vk_shaders)
 
-        set_property(TARGET sample_vk PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/$(Configuration)")
-        set_property(TARGET sample_vk_ray_tracing PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/$(Configuration)")
+        set_property(TARGET sample_vk PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+        set_property(TARGET sample_vk_ray_tracing PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
     endif()
 else()
     set(DWSFW_GL_SAMPLE_SOURCE main_gl.cpp)
@@ -76,7 +76,7 @@ else()
     else()
         add_executable(sample_gl ${DWSFW_GL_SAMPLE_SOURCE})	
         
-        set_property(TARGET sample_gl PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/$(Configuration)")
+        set_property(TARGET sample_gl PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
     endif()
 
     target_link_libraries(sample_gl dwSampleFramework)
