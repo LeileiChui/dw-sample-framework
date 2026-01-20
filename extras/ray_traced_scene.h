@@ -24,8 +24,9 @@ public:
 
     void      build_tlas(vk::CommandBuffer::Ptr cmd_buffer);
     Instance& fetch_instance(const uint32_t& idx);
-    int32_t   material_index(const uint32_t& id);
-    
+    uint32_t  material_index(const uint32_t& id);
+    uint32_t  mesh_index(const uint32_t& mesh_id);
+
     inline uint32_t id() { return m_id; }
     inline glm::vec3 min_extents() { return m_min_extents; }
     inline glm::vec3 max_extents() { return m_max_extents; }

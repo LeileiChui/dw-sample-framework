@@ -256,10 +256,20 @@ RayTracedScene::Instance& RayTracedScene::fetch_instance(const uint32_t& idx)
 
 // -----------------------------------------------------------------------------------------------------------------------------------
 
-int32_t RayTracedScene::material_index(const uint32_t& id)
+uint32_t RayTracedScene::material_index(const uint32_t& id)
 {
     if (m_local_to_global_mat_idx.find(id) != m_local_to_global_mat_idx.end())
         return m_local_to_global_mat_idx[id];
+    else
+        return -1;
+}
+
+// -----------------------------------------------------------------------------------------------------------------------------------
+
+uint32_t RayTracedScene::mesh_index(const uint32_t& mesh_id)
+{
+    if (m_local_to_global_mesh_idx.find(mesh_id) != m_local_to_global_mesh_idx.end())
+        return m_local_to_global_mesh_idx[mesh_id];
     else
         return -1;
 }

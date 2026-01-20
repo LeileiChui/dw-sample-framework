@@ -29,7 +29,8 @@ set(DWSFW_SOURCE ${PROJECT_SOURCE_DIR}/external/imgui/imgui.cpp
 				 ${PROJECT_SOURCE_DIR}/src/profiler.cpp
 				 ${PROJECT_SOURCE_DIR}/src/demo_player.cpp
 				 ${PROJECT_SOURCE_DIR}/src/aftermath_callbacks.cpp
-				 ${PROJECT_SOURCE_DIR}/external/imgui/backends/imgui_impl_glfw.cpp)
+				 ${PROJECT_SOURCE_DIR}/external/imgui/backends/imgui_impl_glfw.cpp
+				 ${PROJECT_SOURCE_DIR}/external/xatlas/xatlas.cpp)
 
 set(DWSFW_HEADERS ${PROJECT_SOURCE_DIR}/include/macros.h
 				  ${PROJECT_SOURCE_DIR}/external/imgui/imconfig.h
@@ -50,7 +51,8 @@ set(DWSFW_HEADERS ${PROJECT_SOURCE_DIR}/include/macros.h
 				  ${PROJECT_SOURCE_DIR}/include/logger.h
 				  ${PROJECT_SOURCE_DIR}/include/utility.h
 				  ${PROJECT_SOURCE_DIR}/include/profiler.h
-				  ${PROJECT_SOURCE_DIR}/include/demo_player.h)
+				  ${PROJECT_SOURCE_DIR}/include/demo_player.h
+				  ${PROJECT_SOURCE_DIR}/external/xatlas/xatlas.h)
 
 if (USE_VULKAN)
 	list(APPEND DWSFW_HEADERS ${PROJECT_SOURCE_DIR}/include/vk.h ${PROJECT_SOURCE_DIR}/include/extensions_vk.h ${PROJECT_SOURCE_DIR}/external/imgui/backends/imgui_impl_vulkan.h)
